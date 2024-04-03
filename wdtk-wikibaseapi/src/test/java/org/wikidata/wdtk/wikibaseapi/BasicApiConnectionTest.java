@@ -63,7 +63,7 @@ public class BasicApiConnectionTest {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private static MockWebServer server;
-	private BasicApiConnection connection;
+	private static BasicApiConnection connection;
 
 	private String LOGGED_IN_SERIALIZED_CONNECTION = "{\"baseUrl\":\"" + server.url("/w/api.php") + "\",\"cookies\":[{\"name\":\"GeoIP\",\"value\":\"DE:13:Dresden:51.0500:13.7500:v4\",\"comment\":null,\"commentURL\":null,\"domain\":\"domain comparison should be skipped\",\"maxAge\":-1,\"path\":\"/\",\"portlist\":null,\"secure\":false,\"httpOnly\":false,\"version\":0,\"discard\":false},{\"name\":\"testwikidatawikiSession\",\"value\":\"c18ef92637227283bcda73bcf95cfaf5\",\"comment\":null,\"commentURL\":null,\"domain\":\"domain comparison should be skipped\",\"maxAge\":-1,\"path\":\"/\",\"portlist\":null,\"secure\":true,\"httpOnly\":true,\"version\":0,\"discard\":false}],\"username\":\"username\",\"loggedIn\":true,\"tokens\":{\"login\":\"b5780b6e2f27e20b450921d9461010b4\"},\"connectTimeout\":5000,\"readTimeout\":6000}";
 
@@ -152,13 +152,13 @@ public class BasicApiConnectionTest {
 		server.shutdown();
 	}
 
-	@Before
 	public void setUp() {
 		connection = new BasicApiConnection(server.url("/w/api.php").toString());
 	}
 
 	@Test
 	public void testGetToken() throws LoginFailedException, IOException, MediaWikiApiErrorException, InterruptedException {
+		setUp();
 		connection.login("username", "password");
 		assertNotNull(connection.getOrFetchToken("csrf"));
 	}
@@ -170,18 +170,21 @@ public class BasicApiConnectionTest {
 
 	@Test
 	public void testConfirmLogin() throws LoginFailedException, IOException, MediaWikiApiErrorException {
+		setUp();
 		String token = connection.getOrFetchToken("login");
 		connection.confirmLogin(token, "username", "password");
 	}
 
 	@Test
 	public void testConfirmClientLogin() throws LoginFailedException, IOException, MediaWikiApiErrorException {
+		setUp();
 		String token = connection.getOrFetchToken("login");
 		connection.confirmClientLogin(token, "Admin", "password");
 	}
 
 	@Test
 	public void testLogin() throws LoginFailedException {
+		setUp();
 		assertFalse(connection.loggedIn);
 		connection.login("username", "password");
 		assertEquals("username", connection.getCurrentUser());
@@ -191,6 +194,7 @@ public class BasicApiConnectionTest {
 
 	@Test
 	public void testClientLogin() throws LoginFailedException {
+		setUp();
 		assertFalse(connection.loggedIn);
 		connection.clientLogin("Admin", "password");
 		assertEquals("Admin", connection.getCurrentUser());
@@ -201,6 +205,7 @@ public class BasicApiConnectionTest {
 
 	@Test
 	public void testSerialize() throws LoginFailedException, IOException {
+		setUp();
 		connection.login("username", "password");
 		connection.setConnectTimeout(5000);
 		connection.setReadTimeout(6000);
@@ -253,6 +258,7 @@ public class BasicApiConnectionTest {
 
 	@Test
 	public void loginFailedUsesReason() {
+		setUp();
 		// This will fail because the user is not known
 		LoginFailedException loginFailedException = assertThrows(LoginFailedException.class,
 				() -> connection.login("username", "password2"));
@@ -367,6 +373,7 @@ public class BasicApiConnectionTest {
 	 */
 	@Test
 	public void testNoTimeouts() throws IOException {
+		setUp();
 		assertEquals(-1, connection.getConnectTimeout());
 		assertEquals(-1, connection.getReadTimeout());
 	}
